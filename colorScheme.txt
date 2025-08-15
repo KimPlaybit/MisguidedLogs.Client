@@ -1,0 +1,11 @@
+Darker Background	#060403	Main background color
+Dark Background	#1C1C1C	Secondary UI elements
+Deep Gray	#2E2E2E	third UI 
+Soft Black	#000000	Text and borders
+Dark Blue	#1A1A4B	Highlight for spells/items
+Dark Purple	#4B1A4B	Accents and highlights
+Blood Red	#8B0000	Alerts and warnings
+Silver Gray	#C0C0C0	Text and icons
+Emerald Green	#2E8B57	Health/mana bars
+
+border #f0ae30
