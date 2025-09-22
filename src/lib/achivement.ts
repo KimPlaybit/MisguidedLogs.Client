@@ -1,7 +1,5 @@
-import type { Component } from "svelte";
-
 export interface AchievementValues {
-    achievements: Achievement[];
+    achivements: Achievement[];
 }
 
 export interface Achievement {
@@ -20,10 +18,10 @@ export interface TableAchievement {
 export interface RecentAchievement {
     name: AchievementName; // Assuming Achievements is an enum or another interface
     boss: number;
-    achivedAt: Date; // Use number for float in TypeScript
+    achivedAt: Date | undefined; // Use number for float in TypeScript
     achived: string;
-    reportCode: string;
-    report: string;
+    reportCode: string | undefined;
+    report: string| undefined;
 }
 
 export enum AchievementName {

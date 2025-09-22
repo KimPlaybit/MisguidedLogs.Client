@@ -2,7 +2,6 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
-		<link rel="stylesheet" href="/shared.css" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		%sveltekit.head%
 	</head>
@@ -10,3 +9,67 @@
 		<div style="display: contents">%sveltekit.body%</div>
 	</body>
 </html>
+
+<style>
+	body {
+	    background-color: #060403;
+	    color: #C0C0C0;
+	    padding: 0;
+	    margin: 0;
+	    font-family: Arial,sans-serif !important;
+	}
+	a {
+	    color: 	#C0C0C0;
+	}
+	.page-content {
+	    max-width: 1200px;
+	    text-align: center;
+	    margin: auto;
+	    display: flex;
+	    flex-direction: column;
+	}
+	.header-content {
+	    max-width: 1200px;
+	    text-align: center;
+	    margin: auto;
+	    display: flex;
+	    flex-direction: row;
+	}
+	.row-direction {
+	    flex-direction: row !important;
+	    display: flex;
+	}
+	.container {
+	    max-width: 1200px;
+	    margin: 0 auto;
+	    padding: 1rem;
+	    display: flex;
+	    flex-direction: column;
+	    text-align: center;
+	}
+	input {
+        background-color: #2E2E2E;
+        color: #C0C0C0;
+        padding: 0.5rem;
+        border: 0px;
+        outline: none;
+        font-size: large;
+        border-radius: 5px;
+    }
+    
+    input:hover {
+        background-color: #2E2E2E;
+        color: #C0C0C0;
+    }
+    
+    input:focus {
+        background-color: #2E2E2E;
+    }
+
+    input[type=text],input[type=text]{
+        color:#C0C0C0;
+    }
+    input[type=text]::placeholder{
+        color:#1f1f1d;
+    }
+</style>

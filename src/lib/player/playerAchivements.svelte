@@ -1,67 +1,143 @@
 <script lang="ts">
-	import type { AchievementValues, RecentAchievement } from "$lib/achivement";
+	import type { AchievementValues, Achievement, RecentAchievement } from "$lib/achivement";
 	import Table from "$lib/misc/table.svelte";
 	import BunnyCdnClientFetcher from "$lib/repository/probabilityFetcher";
+    import { getUnFulfilledAchievements as getUnfulfilledAchievements } from "$lib/misc/unfulfilledAchievements";
+	import type { Class } from "$lib/probability";
     
-    let achivementValues: AchievementValues | undefined = $state(undefined);
+    let achivementValues: Achievement[] = $state([]);
+    interface RareAchivement {
+        Name: string; 
+        Achived: string; 
+        Boss: string; 
+        Log: string | undefined; 
+        Rarity: string | undefined;
+    }
 
     interface Props {
         Achivements: RecentAchievement[]
+        bosses: number[]
+        playerClass: Class
     }
 
     let {
         Achivements,
+        bosses,
+        playerClass
     }: Props = $props();
+
+    let rareAchievements: RareAchivement[] = $state([]);
+    let recentAchievements: RareAchivement[] = $state([]);
 
     BunnyCdnClientFetcher.GetProbabilityData<AchievementValues>("achivements/achivementvalues-stripped.json.gz")
     .then(data => {
         if (data) {
-            achivementValues = data
-        }
-    });
+            achivementValues = data.achivements
+            
+            const unfulfilled = getUnfulfilledAchievements(bosses, 
+                Achivements.map(x => { return { bossId: x.boss, achievementName: x.name} }),
+                playerClass).slice(0, 5);
 
-
-</script>
-
-<div style="flex-direction:row" class="container row-direction">
-    {#if achivementValues}
-        <div style="flex:1; border-right: 1px solid #f0ae30;"> 
-            <Table 
-                Style=""
-                Title="Most Rare Achivement" 
-                RowNames={["Name", "Boss", "Achived", "Rarity", "Log"]}
-                ColumnInfo={Achivements.map(x => {
-                    const rarity = achivementValues?.achievements.find(y => y.name == x.name && y.boss == x.boss)?.probability ?? 0;
-                    const bossImg = `<div class="class-icon"><img src="https://assets.rpglogs.com/img/warcraft/bosses/${x.boss}-icon.jpg" alt="${x.boss}" width="20px"/></div>`;
+            rareAchievements = Achivements.map(x => {
+                    const rarity = achivementValues.find(y => y.name == x.name && y.boss == x.boss)?.probability ?? 0;
+                    const bossImg = `<div class="class-icon"><img src="https://misguidedlogs.com/_app/immutable/assets/boss/${x.boss}.jpg" alt="${x.boss}" width="20px" height="20px"/></div>`;
                     return {
-                        ...x,
                         Name: x.name,
                         Achived: x.achived,
                         Boss: bossImg,
                         Log: x.report,
                         Rarity: rarity
                     };
-                }).sort((a,b) => b.Rarity - a.Rarity).slice(0, 5)}
-                StyleRow={new Map<string,string>([['name', 'flex: 2;'],['boss', 'flex: 2;'],['achived', 'flex: 2;'],['achived', 'flex: 2;'],['report', 'flex: 1;']])}
-                CustomRow={["Boss", "Log"]}></Table>
-        </div>
-         <div style="flex:1; border-left: 1px solid #f0ae30;">
-            <Table 
-                Style=""
-                Title="Recent Achivement" 
-                RowNames={["Name", "Boss", "Achived", "Log"]}
-                ColumnInfo={Achivements.sort((a,b) => b.achivedAt.getTime() - a.achivedAt.getTime()).map(x => {
-                    const bossImg = `<div class="class-icon"><img src="https://assets.rpglogs.com/img/warcraft/bosses/${x.boss}-icon.jpg" alt="${x.boss}" width="20px"/></div>`;
+                }).sort((a,b) => b.Rarity - a.Rarity).slice(0, 5);
+                
+
+            if (rareAchievements.length < 5) {
+                const showUnfulfilledAchivements = 5 - rareAchievements.length;
+                const recentUnfilled = unfulfilled.slice(0, showUnfulfilledAchivements);
+                recentUnfilled.forEach(element => {
+                    const nameImg = `<div class="class-icon">
+                    <img style="filter: grayscale(100%);" 
+                    src="https://misguidedlogs.com/_app/immutable/assets/achivements/${element.name}.png" alt="${element.name}" width="20px" height="20px"/>
+                    </div>`;
+                    const boss = `<div class="class-icon">
+                    <img style="filter: grayscale(100%);" 
+                    src="https://misguidedlogs.com/_app/immutable/assets/boss/${element.boss}.jpg" alt="${element.boss}" width="20px" height="20px"/>
+                    </div>`;
+                    const rarity = achivementValues.find(y => y.name == element.name && y.boss == element.boss)?.probability ?? 0;
+                    rareAchievements.push({
+                        Name: nameImg,
+                        Achived: "Never",
+                        Boss: boss,
+                        Log: undefined,
+                        Rarity: rarity.toFixed(1) + "%"
+                    });
+                });
+            } 
+            recentAchievements = Achivements.sort((a,b) => b.achivedAt!.getTime() - a.achivedAt!.getTime()).map(x => {
+                    const bossImg = `<div class="class-icon"><img src="https://misguidedlogs.com/_app/immutable/assets/boss/${x.boss}.jpg" alt="${x.boss}" width="20px" height="20px"/></div>`;
                      return {
-                        ...x,
                         Name: x.name,
                         Boss: bossImg,
                         Achived: x.achived,
                         Log: x.report,
+                        Rarity: undefined
                     };
-                })}
+                }).slice(0, 5);
+            if (recentAchievements.length < 5) {
+                const showUnfulfilledAchivements = 5 - recentAchievements.length; 
+                const recentUnfilled = unfulfilled.slice(0, showUnfulfilledAchivements);
+                recentUnfilled.forEach(element => {
+                    const nameImg = `<div class="class-icon">
+                    <img style="filter: grayscale(100%);" 
+                    src="https://misguidedlogs.com/_app/immutable/assets/achivements/${element.name}.png" alt="${element.name}" width="20px" height="20px"/>
+                    </div>`;
+                    const boss = `<div class="class-icon">
+                    <img style="filter: grayscale(100%);" 
+                    src="https://misguidedlogs.com/_app/immutable/assets/boss/${element.boss}.jpg" alt="${element.boss}" width="20px" height="20px"/>
+                    </div>`;
+                    recentAchievements.push({
+                        Name: nameImg,
+                        Achived: "Never",
+                        Boss: boss,
+                        Log: undefined,
+                        Rarity: "0.0%"
+                    });
+                });
+            }
+        }
+    });
+
+
+</script>
+
+<div class="container row-direction">
+    {#if achivementValues}
+        <div style="flex:1; margin-right: 5px;"> 
+            <Table 
+                Style=""
+                Title="Most Rare Achivement" 
+                RowNames={["Name", "Boss", "Achived", "Rarity", "Log"]}
+                ColumnInfo={rareAchievements}
+                StyleRow={new Map<string,string>([['name', 'flex: 2;'],['boss', 'flex: 2;'],['achived', 'flex: 2;'],['achived', 'flex: 2;'],['report', 'flex: 1;']])}
+                CustomRow={["Boss", "Name", "Log"]}></Table>
+        </div>
+         <div style="flex:1; margin-left: 5px;">
+            <Table 
+                Style=""
+                Title="Recent Achivement" 
+                RowNames={["Name", "Boss", "Achived", "Log"]}
+                ColumnInfo={recentAchievements}
                 StyleRow={new Map<string,string>([['name', 'flex: 2;'],['boss', 'flex: 2;'],['achived', 'flex: 2;'],['report', 'flex: 1;']])}
-                CustomRow={["Log"]}></Table>
+                CustomRow={["Boss", "Name", "Log"]}></Table>
         </div>
     {/if}
 </div>
+
+<style>
+    @media(max-width:900px) {
+        .container {
+            margin-top:0px;
+            flex-direction: column !important;
+        }
+    }
+</style>

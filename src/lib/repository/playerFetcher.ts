@@ -2,7 +2,7 @@ import type { searchresult } from "$lib/searchresult";
 
 const GetPlayerData = async (playerId: string) => {
     try {
-        const response = await fetch(`https://localhost:7013/search/id/${playerId}`);
+        const response = await fetch(`https://api.misguidedlogs.com/search/id/${playerId}`);
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }

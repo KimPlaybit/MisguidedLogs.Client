@@ -8,7 +8,7 @@ class BunnyCdnClientFetcher {
         if (saved) {
             return Promise.resolve(saved);
         }
-        return fetch(`https://misguidedlogs.b-cdn.net/${query}`)
+        return fetch(`https://misguidedlogs.com/${query}`)
             .then( response => {
                 if (!response.ok || !response.body) {
                     throw new Error('Network response was not ok');

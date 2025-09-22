@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { Component } from "svelte";
 
 
  interface Props {
@@ -29,7 +28,7 @@ const getStyle = (rowName: string) => {
 
 </script>
 
-  <div style={Style}>
+  <div class="table-container" style={Style}>
         <h3 style="text-align:center">{Title}</h3>
         <div>
             <div style="flex-direction:row; border-bottom: 2px solid #f0ae30;" class="container">
@@ -52,3 +51,17 @@ const getStyle = (rowName: string) => {
             {/each}
         </div>
     </div>
+
+<style>
+    @media (max-width: 1200px) {
+        .table-container {
+            width: 100% !important;
+        }
+    }
+    @media (max-width: 1300px) {
+        .table-container {
+            margin-right:auto !important;
+            margin-left:auto !important;
+        }
+    }
+</style>

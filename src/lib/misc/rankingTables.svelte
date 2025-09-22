@@ -1,170 +1,176 @@
 <script lang="ts">
 	import { AchievementName, type Achievement, type RecentAchievement, type TableAchievement } from "$lib/achivement";
-	import { Role, TalentSpec, type ProbabilityValues, type RankedProbability } from "$lib/probability";
+	import { TalentSpec, type RarestPlays } from "$lib/probability";
     import BunnyCdnClientFetcher from "$lib/repository/probabilityFetcher";
 	import Table from "./table.svelte";
+	import Selection from "$lib/misc/selection";
+    import { getUnFulfilledAchievements as getUnfulfilledAchievements } from "./unfulfilledAchievements";
 
-    let probabilities: RankedProbability[] = $state([]);
+    let probabilities: RarestPlays[] = $state([]);
     let achivements: TableAchievement[] = $state([]);
     let recent: RecentAchievement[] = $state([]);
     let loaded: boolean[] = $state([]);
     const style = "flex 1; width: 450px;";
     const achivementCustom = new Map<string,string>([['name', 'flex: 2;']]);
 
-    BunnyCdnClientFetcher.GetProbabilityData<Achievement[]>("achivements/achivementvalues-top-10.json.gz")
+    const getAchievements = () => BunnyCdnClientFetcher.GetProbabilityData<Achievement[]>("achivements/achivementvalues-top-10.json.gz")
     .then(data => {
-        if (data) {
-            achivements = data.map(x => {
+        if (data && typeof data.map === 'function') {
+            achivements = data.filter(x => x.probability != 0).map(x => {
                 return {
                     name: x.name, // Assuming x.name is of type AchievementName
                     boss: x.boss,
                     probability: x.probability,
-                    percentage: (x.probability * 100).toFixed(2) + "%" // Corrected spelling
+                    percentage: x.probability == 0 ? "Unfulfilled" : (x.probability * 100).toFixed(2) + "%" // Corrected spelling
                 };
             });
-            loaded.push(true);
         }
+        const showUnfulfilledAchivements = 10 - (achivements?.length ?? 0);
+        const unfulfilled = getUnfulfilledAchievements(probabilities.map(x => x.bossId), achivements.map(x => { return { bossId: x.boss, achievementName: x.name} })).slice(0, showUnfulfilledAchivements);
+        unfulfilled.forEach(avhievement => {
+            achivements.push({
+                name: avhievement.name,
+                boss: avhievement.boss,
+                probability: avhievement.probability,
+                percentage: "Unfulfilled"
+            });
+        });
+        loaded.push(true);
     });
-    BunnyCdnClientFetcher.GetProbabilityData<RecentAchievement[]>("achivements/achivementrecent.json.gz")
+
+    const getRecentAchivements = () => BunnyCdnClientFetcher.GetProbabilityData<RecentAchievement[]>("achivements/achivementrecent.json.gz")
     .then(data => {
-        if (data) {
+        const showUnfulfilledAchivements = 10 - (data?.length ?? 0);
+        
+        if (data && typeof data.map === 'function') {
             recent = data.map(x => {
                 return {
                     name: x.name, // Assuming x.name is of type AchievementName
                     boss: x.boss,
                     achivedAt: x.achivedAt,
-                    achived: x.achivedAt.toISOString().slice(2, 16).replace('T', ' ').replace(/-/g, '-'),
+                    achived: x.achivedAt?.toISOString().slice(2, 16).replace('T', ' ').replace(/-/g, '-') ?? "",
                     reportCode: x.reportCode, // Corrected spelling
-                    report: `<a href="https://sod.warcraftlogs.com/reports/${x.reportCode}" style="display: flex; align-items: center;" target="_blank">
+                    report: `<a href="https://fresh.warcraftlogs.com/reports/${x.reportCode}" style="display: flex; align-items: center;" target="_blank">
                                 <img src="https://assets.rpglogs.com/img/warcraft/favicon.png?v=4" alt="Player Icon" width="20px" style="margin:auto"/>
                             </a>`
                 };
             });
-            loaded.push(true);
         }
+        const unfulfilled = getUnfulfilledAchievements(
+            probabilities.map(x => x.bossId), 
+            recent.map(x => { return { bossId: x.boss, achievementName: x.name} }))
+            .slice(0, showUnfulfilledAchivements);
+
+        unfulfilled.forEach(avhievement => {
+            recent.push({
+                name: avhievement.name,
+                boss: avhievement.boss,
+                achivedAt: undefined,
+                achived: "Unfulfilled",
+                reportCode: undefined, // Corrected spelling
+                report: undefined
+            });
+        });
+        loaded.push(true);
     });
 
 
-    BunnyCdnClientFetcher.GetProbabilityData<ProbabilityValues>("2018_stripped.json.gz").then(data => {
+    const getProbability = (zone: number) => BunnyCdnClientFetcher.GetProbabilityData<RarestPlays[]>("zones/" + zone + "_rarestplays.json.gz").then(data => {
         if (data) {
-            data.bosses.forEach(boss => {
-                boss.tanks.forEach(tank => {
-                    tank.specs.forEach(spec => {
-                        probabilities.push({
-                            bossId: boss.bossId,
-                            spec: spec.spec,
-                            role: Role[Role.Tank],
-                            class: tank.class,
-                            probabilityValue: spec.totalProbability,
-                            probability: (spec.totalProbability * 100).toFixed(2) + "%"
-                        });
-                    });
-                });
-                boss.dps.forEach(dps => {
-                    dps.specs.forEach(spec => {
-                        probabilities.push({
-                            bossId: boss.bossId,
-                            spec: spec.spec,
-                            role: Role[Role.Dps],
-                            class: dps.class,
-                            probabilityValue: spec.totalProbability,
-                            probability: (spec.totalProbability * 100).toFixed(2) + "%"
-                        });
-                    });
-                });
-                boss.hps.forEach(healer => {
-                    healer.specs.forEach(spec => {
-                        probabilities.push({
-                            bossId: boss.bossId,
-                            spec: spec.spec,
-                            role: Role[Role.Healer],
-                            class: healer.class,
-                            probabilityValue: spec.totalProbability,
-                            probability: (spec.totalProbability * 100).toFixed(2) + "%"
-                        });
-                    });
-                });
-                boss.hybrids.forEach(hybrid => {
-                    hybrid.specs.forEach(spec => {
-                        probabilities.push({
-                            bossId: boss.bossId,
-                            spec: spec.spec,
-                            role: Role[Role.Hybrid],
-                            class: hybrid.class,
-                            probabilityValue: spec.totalProbability,
-                            probability: (spec.totalProbability * 100).toFixed(2) + "%"
-                        });
-                    });
-                });
+            probabilities = [];
+            data.forEach(player => {
+                 probabilities.push(player);
             });
-            probabilities = probabilities.sort((a, b) => a.probabilityValue - b.probabilityValue).slice(0, 10);
-            loaded.push(true);
+            getAchievements();
+            getRecentAchivements();
         } else {
             console.error('No probability data found for the specified boss ID.');
         }
+        loaded.push(true);
     }).catch(error => {
         console.error('Error fetching probability data:', error);
     });
+    Selection.AddSubscription((value => {
+        getProbability(value);
+    }));
     
 </script>
 
 <div>
     {#if loaded.length >= 3 }
-    <div class="grid-container row-direction" style="margin: auto;">
+    <div class="grid-container row-direction" style="margin: auto; margin-top: 20px;">
         <Table 
             Style={style + "margin-left:auto;margin-right:5px;"}
             Title="Most Rare Played Spec" 
-            RowNames={["Boss", "Class", "Spec", "Role", "probability" ]}
+            RowNames={["Boss", "Class", "Role", "Rarity", "By" ]}
             ColumnInfo={probabilities.map(x => {
-                const img = `<div class="class-icon"><img src="./src/lib/assets/class/18/${x.class}.gif" alt="" width="20px"/></div>`;
-                const bossImg = `<div class="class-icon"><img src="https://assets.rpglogs.com/img/warcraft/bosses/${x.bossId}-icon.jpg" alt="${x.bossId}" width="20px"/></div>`;
-                const roleImg = `<div class="class-icon"><img src="./src/lib/assets/role/${x.role}.png" alt="" width="20px"/></div>`;
-                const specImg = x.spec !== TalentSpec.Hybrid ? 
-                `<div class="class-icon"><img src="./src/lib/assets/spec/${x.class}/${x.spec}.png" alt="${x.spec}" width="20px"/></div>` :
-                `<div class="class-icon">${x.spec}</div>` ;
+                 const specImg = x.spec !== TalentSpec.Hybrid ? 
+                `<img src="https://misguidedlogs.com/_app/immutable/assets/spec/${x.class}/${x.spec}.png" alt="${x.spec}" width="20px" height= "20px"/>` :
+                `` ;
+                const img = `<div class="class-icon"><img src="https://misguidedlogs.com/_app/immutable/assets/${x.class}.gif" alt="" width="20px" height= "20px"/>${specImg}</div>`;
+                const bossImg = `<div class="class-icon"><img src="https://misguidedlogs.com/_app/immutable/assets/boss/${x.bossId}.jpg" alt="${x.bossId}" width="20px" height= "20px"/></div>`;
+                const roleImg = `<div class="class-icon"><img src="https://misguidedlogs.com/_app/immutable/assets/${x.role}.png" alt="" width="20px" height= "20px"/></div>`;
+                const link = x.code ? `<a href="https://fresh.warcraftlogs.com/reports/${x.code}" style="display: flex; align-items: center;" target="_blank">` 
+                            + `<img src="https://assets.rpglogs.com/img/warcraft/favicon.png?v=4" alt="Player Icon" width="20px" style="margin:auto"/>` 
+                        + `</a>` : `<a href="https://fresh.warcraftlogs.com/character/${x.name.split("-")[2]}/${x.name.split("-")[1].replace(" ", "-")}/${x.name.split("-")[0]}" style="display: flex; align-items: center;" target="_blank">` 
+                            + `<img src="https://assets.rpglogs.com/img/warcraft/favicon.png?v=4" alt="Player Icon" width="20px" style="margin:auto"/>` 
+                        + `</a>`;
                 return {
                     ...x,
                     Class: img,
                     Boss: bossImg,
                     Role: roleImg,
-                    Spec: specImg
+                    Rarity: x.probability < 0.01 ? "< 0.01%" : (x.probability * 100).toFixed(2) + "%",
+                    By: link
                 };
             })}
             StyleRow={undefined}
-            CustomRow={["Boss", "Class", "Role", "Spec"]}></Table>
+            CustomRow={["Boss", "Class", "Role", "Spec", "By"]}></Table>
         <Table 
             Style={style + "margin-left:5px;margin-right:5px;"}
             Title="Most Rare Achivement" 
             RowNames={["Name", "Boss", "Rarity"]}
-            ColumnInfo={achivements.filter(x => x.probability != 0).map(x => {
-                const bossImg = `<div class="class-icon"><img src="https://assets.rpglogs.com/img/warcraft/bosses/${x.boss}-icon.jpg" alt="${x.boss}" width="20px"/></div>`;
+            ColumnInfo={achivements.map(x => {
+                const bossImg = `<div class="class-icon"><img style="${x.percentage === "Unfulfilled" ? "filter: grayscale(100%);" : ""}" src="https://misguidedlogs.com/_app/immutable/assets/boss/${x.boss}.jpg" alt="${x.boss}" width="20px" height= "20px"/></div>`;
+                const nameImg = `<div class="class-icon"><img style="${x.percentage === "Unfulfilled" ? "filter: grayscale(100%);" : ""}" src="https://misguidedlogs.com/_app/immutable/assets/achivements/${x.name}.png" alt="${x.name}" width="20px" height= "20px"/></div>`;
+                
                 return {
                     ...x,
-                    Name: x.name,
+                    Name: nameImg,
                     Boss: bossImg,
                     Rarity: x.percentage
                 };
             })}
             StyleRow={achivementCustom}
-            CustomRow={["Boss"]}></Table> 
+            CustomRow={["Name", "Boss"]}></Table> 
         <Table 
             Style={style + "margin-left:5px;margin-right:auto;"}
             Title="Most Recent Achivement" 
-            RowNames={["Name", "Boss", "Achived", "Log"]}
+            RowNames={["Name", "Boss", "Achived", "By"]}
             ColumnInfo={recent.map(x => {
-                const bossImg = `<div class="class-icon"><img src="https://assets.rpglogs.com/img/warcraft/bosses/${x.boss}-icon.jpg" alt="${x.boss}" width="20px"/></div>`;
-                return {
+                const bossImg = `<div class="class-icon"><img style="${x.achived === "Unfulfilled" ? "filter: grayscale(100%);" : ""}" src="https://misguidedlogs.com/_app/immutable/assets/boss/${x.boss}.jpg" alt="${x.boss}" width="20px" height= "20px"/></div>`;
+                const nameImg = `<div class="class-icon"><img style="${x.achived === "Unfulfilled" ? "filter: grayscale(100%);" : ""}" src="https://misguidedlogs.com/_app/immutable/assets/achivements/${x.name}.png" alt="${x.name}" width="20px" height= "20px"/></div>`;
+                
+               return {
                     ...x,
-                    Name: x.name,
+                    Name: nameImg,
                     Boss: bossImg,
                     Achived: x.achived,
-                    Log: x.report
+                    By: x.report
                 };
             })}
             StyleRow={new Map<string,string>([['name', 'flex: 2;'],['boss', 'flex: 2;'],['achived', 'flex: 2;'],['report', 'flex: 1;']])}
-            CustomRow={["report"]}></Table>
+            CustomRow={["Name", "report", "Boss", "By"]}></Table>
     </div>
     {:else}
         <p>..loading</p>
     {/if}
 </div>
+
+<style>
+    @media(max-width: 1200px) {
+        .grid-container {
+            flex-direction: column !important;
+        } 
+    }
+</style>

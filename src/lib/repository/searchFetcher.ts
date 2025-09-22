@@ -14,7 +14,7 @@ class Search {
             Search.controller = new AbortController(); // Create a new controller for the next request
         }
 
-        return fetch(`https://localhost:4301/search?query=${query}`, {method: 'GET', signal: Search.controller.signal})
+        return fetch(`https://api.misguidedlogs.com/search?query=${query}`, {method: 'GET', signal: Search.controller.signal})
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');

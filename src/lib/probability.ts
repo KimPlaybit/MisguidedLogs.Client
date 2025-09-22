@@ -13,6 +13,18 @@ export interface BossProbability {
     getProbabilityOfRole(role: Role): ClassProbability[];
 }
 
+export interface RarestPlays {
+    class: Class;
+    spec: TalentSpec;
+    bossId: number;
+    name: string;
+    role: Role;
+    guid: number;
+    probability: number;
+    playerId: string;
+    code: string | undefined;
+}
+
 export interface ClassProbability {
     class: Class;
     specs: SpecProbability[];
