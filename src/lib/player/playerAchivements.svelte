@@ -46,9 +46,10 @@
                         Achived: x.achived,
                         Boss: bossImg,
                         Log: x.report,
-                        Rarity: rarity
+                        procent: rarity,
+                        Rarity: rarity.toFixed(1) + "%"
                     };
-                }).sort((a,b) => b.Rarity - a.Rarity).slice(0, 5);
+                }).sort((a,b) => b.procent - a.procent).slice(0, 5);
                 
 
             if (rareAchievements.length < 5) {
