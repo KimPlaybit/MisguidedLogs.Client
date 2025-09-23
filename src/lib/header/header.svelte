@@ -17,7 +17,7 @@
         <div class="title">
             <img style="margin: auto; margin-left: 0px; margin-right: 10px; "src={smallIcon} alt="" class="search-icon" width="40px" height="40px"/>
             <div style="margin: auto; margin-left: 10px;">
-                <a href="/">
+                <a href="/" class="title-text">
                     <h2>Misguided Logs</h2>
                 </a>
             </div>
@@ -38,6 +38,10 @@
         border-bottom: 0.5px solid #f0ae30;
         flex-direction: row;
         display: flex;
+    }
+
+    .title-text {
+        text-decoration: none;
     }
 
     .title {

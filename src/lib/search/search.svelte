@@ -50,6 +50,10 @@
 </div>
 
 <style>
+    
+    input::placeholder{
+        color:#7F7F7F;
+    }
     .search-container {
         margin-right: 0px; 
         margin-left: auto;
@@ -114,9 +118,6 @@
 
     input[type=text],input[type=text]{
         color:#C0C0C0;
-    }
-    input[type=text]::placeholder{
-        color:#1f1f1d;
     }
     @media (max-width: 1100px) {
         .search-container {

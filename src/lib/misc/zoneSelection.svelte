@@ -3,7 +3,7 @@
     
     let bind = $state(Selection.GetZoneSelection());
     const values = {
-        //"Naxxramas": 1036,
+        "Naxxramas": 1036,
         "Temple of Ahn'Qiraj": 1035,
         "Blackwing Lair": 1034,
         "Ruins Of Ahn'Qiraj": 1031,
