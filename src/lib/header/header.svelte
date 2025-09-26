@@ -5,7 +5,7 @@
 	import Hamburger from "./hamburger.svelte";
     
     interface Props {
-        searchCallback: (id: string) => void
+        searchCallback: (id: string) => void 
     }
     let {
         searchCallback: searchCallback

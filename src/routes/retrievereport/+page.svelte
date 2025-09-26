@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Footer from '$lib/footer/footer.svelte';
 	import Header from '$lib/header/header.svelte';
 	import SubHeaderButtons from '$lib/header/subHeaderButtons.svelte';
 	import { PageContent } from '$lib/misc/pageContent';
@@ -36,24 +37,27 @@
 </script>
 
 <div>
-    <title>Retrieve Report - Misguided Logs</title>
-    <meta name="Retrieve a report from Warcraftlogs" />
-    <Header searchCallback={() => {}}></Header>
-    <div class="subheader"><SubHeaderButtons page={PageContent.RetrieveReport}></SubHeaderButtons></div>
-    <div class="page-content" style="margin-top: 20px;">
-        <h3>Report Retrieval</h3>
-        <div>In order for Misguidedlogs to reward a raid for its achievements at the moment, please provide the code of the report. it 
-            can be found in the URL of the report. For example, in the URL <p></p><span style="font-weight:bold">https://fresh.warcraftlogs.com/reports/pK9MJWy6dmfgvt2xHQ</span>, 
-            the code is <span style="font-weight:bold">pK9MJWy6dmfgvt2xHQ</span>.
-            <p></p>
-            Only Classic Anniversary raids are supported.
+    <div class="page-container">
+        <title>Retrieve Report - Misguided Logs</title>
+        <meta name="Retrieve a report from Warcraftlogs" />
+        <Header searchCallback={() => {}}></Header>
+        <div class="subheader"><SubHeaderButtons page={PageContent.RetrieveReport}></SubHeaderButtons></div>
+        <div class="page-content" style="margin-top: 20px;">
+            <h3>Report Retrieval</h3>
+            <div>In order for Misguidedlogs to reward a raid for its achievements at the moment, please provide the code of the report. it 
+                can be found in the URL of the report. For example, in the URL <p></p><span style="font-weight:bold">https://fresh.warcraftlogs.com/reports/pK9MJWy6dmfgvt2xHQ</span>, 
+                the code is <span style="font-weight:bold">pK9MJWy6dmfgvt2xHQ</span>.
+                <p></p>
+                Only Classic Anniversary raids are supported.
+            </div>
+            <input id="reportCodeInput" placeholder="Write The Report Code" type="text" bind:value={code} disabled={sending}/>
+            <button disabled={sending} onclick={onClick}>Retrieve Report</button>
+            {#if sending}
+                <p>Verifing report from warcraftlogs... please wait</p>
+            {/if}
         </div>
-        <input id="reportCodeInput" placeholder="Write The Report Code" type="text" bind:value={code} disabled={sending}/>
-        <button disabled={sending} onclick={onClick}>Retrieve Report</button>
-        {#if sending}
-            <p>Verifing report from warcraftlogs... please wait</p>
-        {/if}
     </div>
+    <Footer></Footer>
 </div>
 
 <style>

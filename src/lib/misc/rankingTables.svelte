@@ -27,11 +27,11 @@
         }
         const showUnfulfilledAchivements = 10 - (achivements?.length ?? 0);
         const unfulfilled = getUnfulfilledAchievements(probabilities.map(x => x.bossId), achivements.map(x => { return { bossId: x.boss, achievementName: x.name} })).slice(0, showUnfulfilledAchivements);
-        unfulfilled.forEach(avhievement => {
+        unfulfilled.forEach(achievement => {
             achivements.push({
-                name: avhievement.name,
-                boss: avhievement.boss,
-                probability: avhievement.probability,
+                name: achievement.name,
+                boss: achievement.boss,
+                probability: achievement.probability,
                 percentage: "Unfulfilled"
             });
         });
@@ -120,7 +120,16 @@
                     Class: img,
                     Boss: bossImg,
                     Role: roleImg,
-                    Rarity: x.probability < 0.01 ? "< 0.01%" : (x.probability * 100).toFixed(2) + "%",
+                    Rarity: x.probability > 0 
+                        ? (() => {
+                            const n = Math.round(1 / x.probability);
+                            if (n >= 1_000_000) return `1 in ${(n / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+                            if (n >= 1_000) return `1 in ${(n / 1_000).toFixed(1).replace(/\.0$/, '')}k`;
+                            return `1 in ${n.toLocaleString()}`;
+                            if (n >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, '') + 'k';
+                            return n.toLocaleString();
+                        })()
+                        : "Unfulfilled",
                     By: link
                 };
             })}
@@ -128,7 +137,7 @@
             CustomRow={["Boss", "Class", "Role", "Spec", "By"]}></Table>
         <Table 
             Style={style + "margin-left:5px;margin-right:5px;"}
-            Title="Most Rare Achivement" 
+            Title="Most Rare Achievement" 
             RowNames={["Name", "Boss", "Rarity"]}
             ColumnInfo={achivements.map(x => {
                 const bossImg = `<div class="class-icon"><img style="${x.percentage === "Unfulfilled" ? "filter: grayscale(100%);" : ""}" src="https://misguidedlogs.com/_app/immutable/assets/boss/${x.boss}.jpg" alt="${x.boss}" width="20px" height= "20px"/></div>`;
@@ -145,7 +154,7 @@
             CustomRow={["Name", "Boss"]}></Table> 
         <Table 
             Style={style + "margin-left:5px;margin-right:auto;"}
-            Title="Most Recent Achivement" 
+            Title="Most Recent Achievement" 
             RowNames={["Name", "Boss", "Achived", "By"]}
             ColumnInfo={recent.map(x => {
                 const bossImg = `<div class="class-icon"><img style="${x.achived === "Unfulfilled" ? "filter: grayscale(100%);" : ""}" src="https://misguidedlogs.com/_app/immutable/assets/boss/${x.boss}.jpg" alt="${x.boss}" width="20px" height= "20px"/></div>`;
